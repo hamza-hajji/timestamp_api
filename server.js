@@ -8,6 +8,7 @@
 var fs = require('fs');
 var express = require('express');
 var app = express();
+var dateFormat = require('dateformat');
 
 if (!process.env.DISABLE_XORIGIN) {
   app.use(function(req, res, next) {
@@ -32,11 +33,36 @@ app.route('/_api/package.json')
       res.type('txt').send(data.toString());
     });
   });
-  
+
 app.route('/')
     .get(function(req, res) {
 		  res.sendFile(process.cwd() + '/views/index.html');
     })
+
+app.route('/:time')
+    .get(function (req, res) {
+      var time = req.params.time;
+      var unix = '', natural = '';
+      time = decodeURIComponent(time);
+      // check if time starts with a number
+      if (/^\d+$/.test(time)) { // it's a unix timestamp
+        // convert it into a natural string
+        unix = time;
+        natural = dateFormat(new Date(parseInt(time)), 'mmmm d, yyyy');
+      } else {
+        // convert natural date to unix number
+        try {
+          unix = (new Date(time)).getTime();
+          natural = dateFormat(new Date(parseInt(unix)), 'mmmm d, yyyy');;
+        } catch(e) {
+          unix = natural = null;
+        }
+      }
+      res.json({
+        unix: unix,
+        natural: natural
+      });
+    });
 
 // Respond not found to all the wrong routes
 app.use(function(req, res, next){
@@ -50,10 +76,9 @@ app.use(function(err, req, res, next) {
     res.status(err.status || 500)
       .type('txt')
       .send(err.message || 'SERVER ERROR');
-  }  
+  }
 })
 
-app.listen(process.env.PORT, function () {
+app.listen(process.env.PORT ||3000, function () {
   console.log('Node.js listening ...');
 });
-
