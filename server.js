@@ -44,7 +44,7 @@ app.route('/:time')
       var time = req.params.time;
       var unix = '', natural = '';
       time = decodeURIComponent(time);
-      // check if time starts with a number
+      // check if the whole string is a number
       if (/^\d+$/.test(time)) { // it's a unix timestamp
         // convert it into a natural string
         unix = time;
